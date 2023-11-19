@@ -1,0 +1,90 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import KFold, cross_val_score
+from sklearn.metrics import log_loss
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import ReduceLROnPlateau
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import lightgbm as lgb
+from lightgbm.sklearn import LGBMClassifier
+import joblib
+
+
+dataset=pd.read_csv('loan_approval_dataset (1).csv')
+
+#removing loan_id column
+dataset = dataset.drop('loan_id', axis=1)
+
+#replacing missing values with mean for numerical data
+numerical_cols = ['no_of_dependents','income_annum','loan_amount','loan_term','cibil_score','residential_assets_value','commercial_assets_value','luxury_assets_value','bank_asset_value']
+for col in numerical_cols:
+    dataset[col].fillna(dataset[col].mean(), inplace=True)
+
+#replacing missing values with mode for categorical data
+categorical_cols = ['education', 'self_employed']
+dataset[categorical_cols] = dataset[categorical_cols].fillna(dataset[categorical_cols].mode().iloc[0])
+
+#removing duplicate rows
+dataset = dataset[~dataset.duplicated()]
+dataset.shape
+
+dataset['education'] = dataset['education'].map({' Graduate': 1, ' Not Graduate': 0})
+dataset['self_employed'] = dataset['self_employed'].map({' Yes': 1, ' No': 0})
+
+#splitting input and output features
+X = dataset.drop('loan_status', axis=1)
+y = dataset['loan_status']
+
+#splitting training and testing (80:20)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#scaling input features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+
+# Create LightGBM dataset
+train_data = lgb.Dataset(X_train_scaled, label=y_train)
+
+# Set hyperparameters
+params = {
+    'objective': 'binary',  # for binary classification
+    'boosting_type': 'gbdt',
+    'metric': 'binary_logloss',
+    'num_leaves': 31,
+    'learning_rate': 0.01,
+    'feature_fraction': 0.9,
+}
+
+# Create the LGBM classifier
+lgb_classifier = LGBMClassifier(**params)
+
+# Perform K-fold cross-validation with the LightGBM classifier
+cv_scores = cross_val_score(lgb_classifier, X, y, cv=10, scoring='accuracy')
+
+# Print the cross-validation scores
+print('Cross-Validation Scores:', cv_scores)
+print('Mean Score:', np.mean(cv_scores))
+
+# Train the model on the full training set
+lgb_classifier.fit(X_train_scaled, y_train)
+
+joblib.dump(lgb_classifier, 'loan_approval_model.joblib')
+joblib.dump(scaler, 'loan_approval_scaler.joblib')
+
+# Make predictions on the test set
+LGB_pred = lgb_classifier.predict(X_test_scaled)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, LGB_pred)
+classification_report_result = classification_report(y_test, LGB_pred)
+
+print(f'Accuracy: {accuracy}')
+print('Classification Report:\n', classification_report_result)
