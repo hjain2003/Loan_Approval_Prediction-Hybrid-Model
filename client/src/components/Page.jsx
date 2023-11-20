@@ -136,7 +136,8 @@ const Page = () => {
                     <button id="submit_btn" onClick={handleSubmit}><b>Submit</b></button>
 
                 <br />
-                <b>Prediction</b> {prediction} 
+                <div className='pred'><b>Prediction:&nbsp;</b> <div className={prediction === ' Approved' ? 'approved' : 'predval'}>{prediction}</div></div>
+                 
                 </div>
             </div>
         </>
