@@ -27,6 +27,15 @@ const Page = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const requiredFields = ['no_of_dependents', 'education', 'self_employed', 'income_annum', 'loan_amount', 'loan_term', 'cibil_score', 'residential_assets_value', 'commercial_assets_value', 'luxury_assets_value', 'bank_asset_value'];
+
+        for (const field of requiredFields) {
+            if (!formData[field]) {
+                window.alert(`Please fill in the "${field.replace(/_/g, ' ')}" field.`);
+                return; // Stop the submission if any field is empty
+            }
+        }
+
         try {
             const response = await fetch('http://127.0.0.1:5000/predict', {
                 method: 'POST',
@@ -80,64 +89,64 @@ const Page = () => {
 
                         <span className="input_field">
                             <label htmlFor="">Income per annum</label>
-                            <input type="number" name="income_annum" onChange={handleChange}/>
+                            <input type="number" name="income_annum" onChange={handleChange} />
                         </span>
                     </div>
 
                     <div className="row_box">
                         <span className="input_field">
                             <label htmlFor="">Loan needed</label>
-                            <input type="number" name="loan_amount" onChange={handleChange}/>
+                            <input type="number" name="loan_amount" onChange={handleChange} />
                         </span>
 
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                         <span className="input_field">
                             <label htmlFor="">Loan Term (in yrs)</label>
-                            <input type="number" name="loan_term" onChange={handleChange}/>
+                            <input type="number" name="loan_term" onChange={handleChange} />
                         </span>
                     </div>
 
                     <div className="row_box">
                         <span className="input_field">
                             <label htmlFor="">Cibil score</label>
-                            <input type="number" name="cibil_score" onChange={handleChange}/>
+                            <input type="number" name="cibil_score" onChange={handleChange} />
                         </span>
 
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                         <span className="input_field">
                             <label htmlFor="">Residential assets value</label>
-                            <input type="number" name="residential_assets_value" onChange={handleChange}/>
+                            <input type="number" name="residential_assets_value" onChange={handleChange} />
                         </span>
                     </div>
 
                     <div className="row_box">
                         <span className="input_field">
                             <label htmlFor="">Commercial assets value</label>
-                            <input type="number" name="commercial_assets_value" onChange={handleChange}/>
+                            <input type="number" name="commercial_assets_value" onChange={handleChange} />
                         </span>
 
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                         <span className="input_field">
                             <label htmlFor="">Luxury assets value</label>
-                            <input type="number" name="luxury_assets_value" onChange={handleChange}/>
+                            <input type="number" name="luxury_assets_value" onChange={handleChange} />
                         </span>
                     </div>
 
                     <div className="row_box">
                         <span className="input_field">
                             <label htmlFor="">Bank assets value</label>
-                            <input type="number" name="bank_asset_value" onChange={handleChange}/>
+                            <input type="number" name="bank_asset_value" onChange={handleChange} />
                         </span>
                     </div>
                     <br />
                     <button id="submit_btn" onClick={handleSubmit}><b>Submit</b></button>
 
-                <br />
-                <div className='pred'><b>Prediction:&nbsp;</b> <div className={prediction === ' Approved' ? 'approved' : 'predval'}>{prediction}</div></div>
-                 
+                    <br />
+                    <div className='pred'><b>Prediction:&nbsp;</b> <div className={prediction === ' Approved' ? 'approved' : 'predval'}>{prediction}</div></div>
+
                 </div>
             </div>
         </>
